@@ -1,0 +1,10 @@
+# Automatically generated context index for Utopia::Project guides.
+---
+description: Worker-aware HTTP load balancing with a global admission queue.
+metadata:
+  documentation_uri: https://socketry.github.io/fantail/
+  source_code_uri: https://github.com/socketry/fantail.git
+files:
+- path: getting-started.md
+  title: Getting Started
+  description: This guide explains how to run Fantail and publish HTTP worker endpoints.
