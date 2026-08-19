@@ -10,11 +10,15 @@ Fantail routes each request to a worker which is ready to process it. It separat
 
 Please see the [project documentation](https://socketry.github.io/fantail/) for more details.
 
-  - [Getting Started](https://socketry.github.io/fantail/guides/getting-started/index) - Run a Fantail server and publish worker endpoints.
+  - [Getting Started](https://socketry.github.io/fantail/guides/getting-started/index) - This guide explains how to run Fantail and publish HTTP worker endpoints.
 
 ## Releases
 
-There are no documented releases.
+Please see the [project releases](https://socketry.github.io/fantail/releases/index) for all releases.
+
+### v0.0.1
+
+  - Initial implementation.
 
 ## Contributing
 
