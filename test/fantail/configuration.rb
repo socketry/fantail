@@ -62,4 +62,12 @@ describe Fantail::Configuration do
 			expect{subject.load(path)}.to raise_exception(TypeError)
 		end
 	end
+	
+	it "rejects invalid balance policies" do
+		expect do
+			subject.define do |config|
+				config.queue(:default){|queue| queue.balance Object.new}
+			end
+		end.to raise_exception(ArgumentError)
+	end
 end

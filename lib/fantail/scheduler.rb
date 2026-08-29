@@ -13,6 +13,8 @@ module Fantail
 	class Scheduler
 		# A reserved processing permit and response exchange.
 		class Reservation
+			# @parameter backend [Backend] The reserved backend.
+			# @parameter queue_name [Symbol] The queue consuming the permit.
 			def initialize(backend, queue_name)
 				@backend = backend
 				@queue_name = queue_name
@@ -20,14 +22,17 @@ module Fantail
 			
 			attr :backend
 			
+			# Release the processing permit after response headers arrive.
 			def processed
 				@backend.processed(@queue_name)
 			end
 			
+			# Release the processing permit and exchange after an upstream failure.
 			def failed
 				@backend.failed(@queue_name)
 			end
 			
+			# Release the response exchange after its body closes.
 			def release
 				@backend.release
 			end
@@ -35,10 +40,12 @@ module Fantail
 		
 		# A queue admission rejection.
 		class Rejection
+			# @parameter queue [Configuration::Queue] The queue which rejected admission.
 			def initialize(queue)
 				@queue = queue
 			end
 			
+			# @returns [Protocol::HTTP::Response] The configured shedding response.
 			def response
 				headers = {"content-type" => "text/plain"}.merge(@queue.shed_headers)
 				Protocol::HTTP::Response[@queue.shed_status, headers, ["Request queue is full.\n"]]
@@ -47,6 +54,8 @@ module Fantail
 		
 		Entry = Struct.new(:request, :queue, :enqueued_at, :result, :pending, :assignment)
 		
+		# @parameter registry [Registry] The available backend registry.
+		# @parameter configuration [Configuration] Request and scheduling policy.
 		def initialize(registry, configuration = Configuration.default)
 			@registry = registry
 			@configuration = configuration

@@ -8,6 +8,11 @@ module Fantail
 	module Balance
 		# Prefer the backend with the fewest active requests.
 		class Spread
+			# Select the least-active backend, using its name for deterministic ties.
+			# @parameter backends [Array(Backend)] Eligible backends with available permits.
+			# @parameter queue [Configuration::Queue] The request queue being scheduled.
+			# @parameter request [Protocol::HTTP::Request] The pending request.
+			# @returns [Backend | Nil] The preferred backend.
 			def select(backends, queue:, request:)
 				backends.min_by{|backend| [backend.processing, backend.name]}
 			end
@@ -15,10 +20,16 @@ module Fantail
 		
 		# Prefer a backend which is already processing the same class of work.
 		class Pack
+			# @parameter affinity [Symbol | Nil] The queue affinity to pack, or the current queue by default.
 			def initialize(affinity: nil)
 				@affinity = affinity
 			end
 			
+			# Select the backend with the most active work for the affinity.
+			# @parameter backends [Array(Backend)] Eligible backends with available permits.
+			# @parameter queue [Configuration::Queue] The request queue being scheduled.
+			# @parameter request [Protocol::HTTP::Request] The pending request.
+			# @returns [Backend | Nil] The preferred backend.
 			def select(backends, queue:, request:)
 				affinity = @affinity || queue.name
 				backends.min_by do |backend|
@@ -27,6 +38,10 @@ module Fantail
 			end
 		end
 		
+		# Resolve a built-in policy name or validate an application policy object.
+		# @parameter policy [Symbol | #select] The policy name or object.
+		# @parameter options [Hash] Options for a built-in policy.
+		# @returns [#select] The resolved balance policy.
 		def self.coerce(policy, **options)
 			case policy
 			when :spread

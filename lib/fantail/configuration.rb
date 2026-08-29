@@ -12,6 +12,7 @@ module Fantail
 		
 		# Configuration for one class of requests.
 		class Queue
+			# @parameter name [Symbol | String] The stable queue name.
 			def initialize(name)
 				@name = name.to_sym
 				@matcher = nil
@@ -29,25 +30,38 @@ module Fantail
 			attr :shed_status
 			attr :shed_headers
 			
+			# Set the request classifier for this queue.
+			# @yields {|request| ...} Whether a request belongs to this queue.
 			def match(&block)
 				raise ArgumentError, "A matcher block is required!" unless block
 				@matcher = block
 			end
 			
+			# Restrict the backends which may serve this queue.
+			# @yields {|backend, request| ...} Whether the backend is eligible.
 			def eligible(&block)
 				raise ArgumentError, "An eligibility block is required!" unless block
 				@eligibility = block
 			end
 			
+			# Set an application admission policy.
+			# @parameter policy [#admit? | #call | Nil] The admission policy object.
+			# @yields {|request, queue:, pending:| ...} Whether the request can wait.
 			def admit(policy = nil, &block)
 				@admission = policy || block
 				raise ArgumentError, "An admission policy is required!" unless @admission
 			end
 			
+			# Set the soft backend balance policy.
+			# @parameter policy [Symbol | #select] A built-in name or application policy.
+			# @parameter options [Hash] Options for a built-in policy.
 			def balance(policy, **options)
 				@balance = Balance.coerce(policy, **options)
 			end
 			
+			# Set or get the maximum number of requests waiting in this queue.
+			# @parameter value [Integer] The new limit when given.
+			# @returns [Integer | Nil] The configured limit.
 			def depth_limit(value = UNDEFINED)
 				return @depth_limit if value.equal?(UNDEFINED)
 				
@@ -56,6 +70,9 @@ module Fantail
 				@depth_limit = value
 			end
 			
+			# Set or get the maximum time a request may wait for a permit.
+			# @parameter value [Numeric] The new limit in seconds when given.
+			# @returns [Float | Nil] The configured limit.
 			def wait_limit(value = UNDEFINED)
 				return @wait_limit if value.equal?(UNDEFINED)
 				
@@ -64,20 +81,28 @@ module Fantail
 				@wait_limit = value
 			end
 			
+			# Configure the response used when admission is rejected.
+			# @parameter status [Integer] The HTTP response status.
+			# @parameter retry_after [Numeric | String | Nil] An optional Retry-After value.
+			# @parameter headers [Hash] Additional response headers.
 			def shed(status: 429, retry_after: nil, headers: {})
 				@shed_status = Integer(status)
 				@shed_headers = headers.transform_keys(&:to_s)
 				@shed_headers["retry-after"] = retry_after.to_s if retry_after
 			end
 			
+			# @parameter request [Protocol::HTTP::Request] The request to classify.
+			# @returns [Boolean | Nil] Whether the request matches this queue.
 			def match?(request)
 				@matcher&.call(request)
 			end
 			
+			# @returns [Boolean] Whether a backend may serve the request.
 			def eligible?(backend, request)
 				!@eligibility || @eligibility.call(backend, request)
 			end
 			
+			# @returns [Boolean] Whether a request may enter the pending queue.
 			def admit?(request, pending:)
 				return true unless @admission
 				
@@ -88,6 +113,8 @@ module Fantail
 				end
 			end
 			
+			# Validate and freeze this queue definition.
+			# @returns [Queue] The finalized queue.
 			def finalize
 				@balance_policy = @balance
 				@shed_headers.freeze
@@ -95,12 +122,16 @@ module Fantail
 			end
 		end
 		
+		# Build and finalize a configuration.
+		# @yields {|configuration| ...} The mutable configuration builder.
+		# @returns [Configuration] The immutable configuration.
 		def self.define
 			configuration = new
 			yield configuration if block_given?
 			configuration.finalize
 		end
 		
+		# @returns [Configuration] A single-queue, single-permit configuration.
 		def self.default
 			@default ||= define do |configuration|
 				configuration.queue(:default)
@@ -120,6 +151,7 @@ module Fantail
 			configuration
 		end
 		
+		# Initialize an empty mutable configuration builder.
 		def initialize
 			@queues = {}
 			@default_queue = nil
@@ -141,6 +173,8 @@ module Fantail
 			queue
 		end
 		
+		# Select the fallback queue for unmatched requests.
+		# @parameter name [Symbol | String] A previously or subsequently defined queue.
 		def default_queue(name)
 			@default_queue = name.to_sym
 		end
@@ -163,6 +197,8 @@ module Fantail
 			@permit_limit = value
 		end
 		
+		# Classify a request using matchers in definition order.
+		# @returns [Queue] The matching or default queue.
 		def classify(request)
 			@queues.each_value do |queue|
 				return queue if queue.match?(request)
@@ -171,6 +207,8 @@ module Fantail
 			@queues.fetch(@default_queue)
 		end
 		
+		# Validate and freeze the complete configuration.
+		# @returns [Configuration] The finalized configuration.
 		def finalize
 			raise ArgumentError, "At least one queue must be defined!" if @queues.empty?
 			@default_queue ||= @queues.keys.first

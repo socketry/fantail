@@ -103,6 +103,32 @@ describe Fantail::Scheduler do
 		registry&.close
 	end
 	
+	it "retries selection when a permit is consumed concurrently" do
+		consumed = nil
+		policy = Object.new
+		policy.define_singleton_method(:select) do |backends, queue:, **|
+			unless consumed
+				consumed = backends.first
+				consumed.reserve(queue.name)
+			end
+			
+			backends.first
+		end
+		configuration = make_configuration do |config|
+			config.queue(:default){|queue| queue.balance policy}
+		end
+		registry = make_registry
+		add_workers(registry)
+		scheduler = subject.new(registry, configuration)
+		
+		reservation = scheduler.acquire(Protocol::HTTP::Request["GET", "/"])
+		expect(reservation.backend.name).to be == "worker-2"
+	ensure
+		finish(reservation) if reservation
+		consumed&.failed(:default)
+		registry&.close
+	end
+	
 	it "uses another queue when the oldest queue has no eligible worker" do
 		configuration = make_configuration do |config|
 			config.queue :special do |queue|
@@ -181,6 +207,7 @@ describe Fantail::Scheduler do
 		held = scheduler.acquire(Protocol::HTTP::Request["GET", "/held"])
 		waiting_task = Async{scheduler.acquire(Protocol::HTTP::Request["GET", "/waiting"])}
 		Fiber.scheduler.yield
+		expect(scheduler.pending_count(:default)).to be == 1
 		
 		rejection = scheduler.acquire(Protocol::HTTP::Request["GET", "/rejected"])
 		response = rejection.response
@@ -216,6 +243,24 @@ describe Fantail::Scheduler do
 	it "supports application admission policies" do
 		configuration = make_configuration do |config|
 			config.queue(:default){|queue| queue.admit{|request, **| request.path != "/shed"}}
+		end
+		registry = make_registry
+		add_workers(registry, 1)
+		scheduler = subject.new(registry, configuration)
+		held = scheduler.acquire(Protocol::HTTP::Request["GET", "/held"])
+		
+		rejection = scheduler.acquire(Protocol::HTTP::Request["GET", "/shed"])
+		expect(rejection).to be_a(Fantail::Scheduler::Rejection)
+	ensure
+		finish(held) if held
+		registry&.close
+	end
+	
+	it "supports application admission policy objects" do
+		policy = Object.new
+		policy.define_singleton_method(:admit?){|request, **| request.path != "/shed"}
+		configuration = make_configuration do |config|
+			config.queue(:default){|queue| queue.admit policy}
 		end
 		registry = make_registry
 		add_workers(registry, 1)

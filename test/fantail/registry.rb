@@ -4,9 +4,11 @@
 # Copyright, 2026, by Samuel Williams.
 
 require "fantail"
+require "sus/fixtures/async/reactor_context"
 require_relative "fixtures"
 
 describe Fantail::Registry do
+	include Sus::Fixtures::Async::ReactorContext
 	include Fantail::Fixtures
 	
 	let(:registry) {make_registry}
@@ -68,6 +70,24 @@ describe Fantail::Registry do
 		
 		backend.failed
 		expect(backend).not.to be(:processing?)
+	end
+	
+	it "wakes an acquisition when a permit is released" do
+		registry.replace([{name: "worker-1", url: "http://127.0.0.1:9301"}])
+		first = registry.acquire
+		second_task = Async{registry.acquire}
+		Fiber.scheduler.yield
+		
+		expect(second_task).not.to be(:finished?)
+		first.failed
+		first = nil
+		
+		second = second_task.wait
+		expect(second.name).to be == "worker-1"
+	ensure
+		first&.failed
+		second&.failed
+		second_task&.stop
 	end
 	
 	it "supports multiple processing permits" do
