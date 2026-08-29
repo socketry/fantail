@@ -10,20 +10,22 @@ require_relative "endpoint"
 require_relative "backend"
 
 module Fantail
-	# Maintains live backends and a global queue of available processing slots.
+	# Maintains live backends and notifies the scheduler when capacity changes.
 	class Registry < Async::Bus::Controller
-		WAKE = Object.new.freeze
-		
 		# Initialize an endpoint registry.
 		# @parameter exchange_limit [Integer] The maximum outstanding responses per backend.
-		# @parameter backend_factory [Proc | Nil] An optional backend construction strategy.
-		def initialize(exchange_limit: 8, backend_factory: nil)
+		# @parameter permit_limit [Integer] The maximum active processing permits per backend.
+		# @parameter backend_factory [#call(endpoint, exchange_limit, permit_limit, available) | Nil] An optional backend construction strategy.
+		def initialize(exchange_limit: 8, permit_limit: 1, backend_factory: nil)
 			@exchange_limit = exchange_limit
+			@permit_limit = permit_limit
 			@backend_factory = backend_factory || self.method(:make_backend)
 			
 			@guard = Thread::Mutex.new
 			@backends = {}
-			@available = Async::Queue.new
+			@notifications = Async::Queue.new
+			@waiting = 0
+			@available = nil
 			@closed = false
 		end
 		
@@ -62,7 +64,7 @@ module Fantail
 					next if current&.endpoint == endpoint
 					
 					retired << current if current
-					backend = @backend_factory.call(endpoint, @exchange_limit, self.method(:offer))
+					backend = @backend_factory.call(endpoint, @exchange_limit, @permit_limit, self.method(:offer))
 					@backends[endpoint.name] = backend
 					started << backend
 				end
@@ -70,7 +72,7 @@ module Fantail
 			
 			retired.each(&:retire)
 			started.each(&:start)
-			@available.enqueue(WAKE) unless retired.empty?
+			notify_available unless retired.empty?
 			
 			self.size
 		end
@@ -78,15 +80,33 @@ module Fantail
 		# Acquire the next backend with processing capacity.
 		# @returns [Backend | Nil] An admitted backend, or nil if no endpoints exist.
 		def acquire
+			waiting = false
+			
 			loop do
 				return nil if self.empty?
+				backend = backends.find{|candidate| candidate.reserve}
+				return backend if backend
 				
-				candidate = @available.dequeue
-				return nil unless candidate
-				next if candidate.equal?(WAKE)
+				unless waiting
+					@guard.synchronize{@waiting += 1}
+					waiting = true
+					next
+				end
 				
-				return candidate if candidate.reserve
+				return nil unless @notifications.dequeue
 			end
+		ensure
+			@guard.synchronize{@waiting -= 1} if waiting
+		end
+		
+		# @returns [Array(Backend)] A snapshot of active backends.
+		def backends
+			@guard.synchronize{@backends.values.dup}
+		end
+		
+		# Register the central scheduler capacity callback.
+		def on_available(&block)
+			@guard.synchronize{@available = block}
 		end
 		
 		# @returns [Integer] The number of active endpoints.
@@ -120,21 +140,27 @@ module Fantail
 				@backends.values.tap{@backends = {}}
 			end
 			
-			@available.close
+			@notifications.close
 			backends.each(&:retire)
 		end
 		
 		protected
 		
-		def offer(backend)
-			@available.enqueue(backend)
-		rescue Async::Queue::ClosedError
-			# The registry is already shutting down:
+		def offer(_backend)
+			notify_available
 		end
 		
-		def make_backend(endpoint, exchange_limit, available)
+		def notify_available
+			available, waiting = @guard.synchronize{[@available, @waiting]}
+			@notifications.enqueue(true) if waiting.positive?
+			available&.call
+		rescue Async::Queue::ClosedError
+			# The registry is already shutting down.
+		end
+		
+		def make_backend(endpoint, exchange_limit, permit_limit, available)
 			client = endpoint.make_client(exchange_limit: exchange_limit)
-			Backend.new(endpoint, client, exchange_limit: exchange_limit, &available)
+			Backend.new(endpoint, client, exchange_limit: exchange_limit, permit_limit: permit_limit, &available)
 		end
 	end
 end

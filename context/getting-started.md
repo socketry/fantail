@@ -21,9 +21,12 @@ require "fantail"
 require "io/endpoint"
 
 Sync do
+	configuration = Fantail::Configuration.load("config/fantail.rb")
+	
 	server = Fantail::Server.new(
 		Async::HTTP::Endpoint.parse("http://0.0.0.0:9292"),
 		IO::Endpoint.tcp("0.0.0.0", 9293),
+		configuration: configuration,
 	)
 	
 	server.run.wait
@@ -54,6 +57,53 @@ After connecting, the monitor performs a complete replacement. It then publishes
 
 ## Admission Semantics
 
-Each backend has one request-processing slot and a configurable number of response exchanges. The processing slot is released as soon as upstream response headers arrive. The exchange remains reserved until the response body closes.
+Each backend has a configurable number of request-processing permits and response exchanges. A processing permit is released as soon as upstream response headers arrive. The exchange remains reserved until the response body closes.
 
 This allows a worker to begin another request while an earlier response streams, without allowing an unbounded number of streaming responses to accumulate.
+
+The scheduler owns all permits. Request queues can decide which workers are eligible and express a soft preference between them, but cannot reserve capacity independently. If the preferred worker is unavailable, the scheduler remains work-conserving and uses another eligible worker.
+
+## Request Queues
+
+Fantail configuration is trusted application Ruby. The file's final expression must be an immutable `Fantail::Configuration`:
+
+~~~ ruby
+# config/fantail.rb
+Fantail::Configuration.define do |config|
+	config.queue :liquid do |queue|
+		queue.match{|request| request.path.start_with?("/render")}
+		queue.balance :spread
+		queue.depth_limit 500
+		queue.wait_limit 0.25
+		queue.shed status: 429, retry_after: 1
+	end
+	
+	config.queue :grpc do |queue|
+		queue.match do |request|
+			request.headers["content-type"]&.start_with?("application/grpc")
+		end
+		
+		queue.balance :pack, affinity: :grpc
+	end
+	
+	config.default_queue :liquid
+	config.pending_limit 1_000
+	config.permit_limit 1
+end
+~~~
+
+Matchers are evaluated in definition order, followed by the default queue. Across queues, the oldest eligible head request is dispatched first. If that request has no eligible worker, another queue can use the available permit.
+
+The built-in `:spread` policy prefers the least-active worker. The `:pack` policy prefers a worker already processing the specified affinity, while remaining bounded by its permits. An application can supply a policy object implementing `select(backends, queue:, request:)`, and can restrict hard eligibility with `queue.eligible`.
+
+## Load Shedding
+
+`depth_limit` bounds requests actually waiting in a queue; immediately dispatchable requests do not count against it. `pending_limit` provides a global bound across all queues. `wait_limit` bounds actual queue residence time in seconds. Rejected requests use the response configured by `shed`, which defaults to HTTP 429.
+
+Applications can add an admission policy with either a block or an object implementing `admit?(request, queue:, pending:)`:
+
+~~~ ruby
+queue.admit do |request, queue:, pending:|
+	pending < application_limit_for(queue.name)
+end
+~~~

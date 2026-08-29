@@ -4,10 +4,13 @@
 # Copyright, 2026, by Samuel Williams.
 
 require_relative "fantail/version"
+require_relative "fantail/balance"
+require_relative "fantail/configuration"
 require_relative "fantail/endpoint"
 require_relative "fantail/backend"
 require_relative "fantail/response_body"
 require_relative "fantail/registry"
+require_relative "fantail/scheduler"
 require_relative "fantail/proxy"
 require_relative "fantail/control"
 require_relative "fantail/monitor"

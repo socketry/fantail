@@ -70,6 +70,23 @@ describe Fantail::Registry do
 		expect(backend).not.to be(:processing?)
 	end
 	
+	it "supports multiple processing permits" do
+		registry.close
+		registry = make_registry(permit_limit: 2)
+		registry.replace([{name: "worker-1", url: "http://127.0.0.1:9301"}])
+		backend = registry["worker-1"]
+		
+		expect(backend.reserve(:grpc)).to be_truthy
+		expect(backend.reserve(:grpc)).to be_truthy
+		expect(backend.reserve(:grpc)).to be_falsey
+		expect(backend.processing_for(:grpc)).to be == 2
+		
+		backend.failed(:grpc)
+		backend.failed(:grpc)
+	ensure
+		registry&.close
+	end
+	
 	it "returns nil when no endpoints exist" do
 		expect(registry.acquire).to be_nil
 	end

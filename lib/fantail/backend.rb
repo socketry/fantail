@@ -10,20 +10,23 @@ module Fantail
 		# @parameter endpoint [Endpoint] The endpoint served by this backend.
 		# @parameter client [Interface(:call, :close)] The HTTP client for the endpoint.
 		# @parameter exchange_limit [Integer] The maximum number of outstanding response exchanges.
+		# @parameter permit_limit [Integer] The maximum number of concurrent processing permits.
 		# @yields {|backend| ...} Invoked when the backend can accept another request.
-		def initialize(endpoint, client, exchange_limit:, &available)
+		def initialize(endpoint, client, exchange_limit:, permit_limit: 1, &available)
 			raise ArgumentError, "Exchange limit must be positive!" unless exchange_limit.positive?
+			raise ArgumentError, "Permit limit must be positive!" unless permit_limit.positive?
 			
 			@endpoint = endpoint
 			@client = client
 			@exchange_limit = exchange_limit
+			@permit_limit = permit_limit
 			@available = available
 			
 			@guard = Thread::Mutex.new
 			@active = true
-			@processing = false
+			@processing = 0
+			@processing_by_queue = Hash.new(0)
 			@exchanges = 0
-			@queued = false
 			@closed = false
 		end
 		
@@ -45,12 +48,11 @@ module Fantail
 		
 		# Reserve the processing slot and one response exchange.
 		# @returns [Boolean] Whether the backend was successfully reserved.
-		def reserve
+		def reserve(queue_name = :default)
 			@guard.synchronize do
-				@queued = false
-				
-				if @active && !@processing && @exchanges < @exchange_limit
-					@processing = true
+				if @active && @processing < @permit_limit && @exchanges < @exchange_limit
+					@processing += 1
+					@processing_by_queue[queue_name] += 1
 					@exchanges += 1
 					return true
 				end
@@ -67,20 +69,18 @@ module Fantail
 		end
 		
 		# Release the request-processing slot after response headers arrive.
-		def processed
+		def processed(queue_name = :default)
 			@guard.synchronize do
-				raise RuntimeError, "Backend is not processing a request!" unless @processing
-				@processing = false
+				release_processing(queue_name)
 			end
 			
 			notify_available
 		end
 		
 		# Release both reservations when a request fails before response headers.
-		def failed
+		def failed(queue_name = :default)
 			close = @guard.synchronize do
-				raise RuntimeError, "Backend is not processing a request!" unless @processing
-				@processing = false
+				release_processing(queue_name)
 				@exchanges -= 1
 				should_close?
 			end
@@ -123,26 +123,40 @@ module Fantail
 		
 		# @returns [Boolean] Whether a request is waiting for response headers.
 		def processing?
+			@guard.synchronize{@processing.positive?}
+		end
+		
+		# @returns [Integer] The number of active processing permits.
+		def processing
 			@guard.synchronize{@processing}
+		end
+		
+		# @returns [Integer] The number of active permits for the given queue affinity.
+		def processing_for(queue_name)
+			@guard.synchronize{@processing_by_queue[queue_name]}
+		end
+		
+		# @returns [Boolean] Whether another request can be admitted.
+		def available?
+			@guard.synchronize{@active && @processing < @permit_limit && @exchanges < @exchange_limit}
 		end
 		
 		protected
 		
 		def notify_available
-			notify = @guard.synchronize do
-				if @active && !@processing && @exchanges < @exchange_limit && !@queued
-					@queued = true
-					true
-				else
-					false
-				end
-			end
-			
-			@available.call(self) if notify
+			@available.call(self) if available?
 		end
 		
 		def should_close?
-			!@active && !@processing && @exchanges.zero? && !@closed
+			!@active && @processing.zero? && @exchanges.zero? && !@closed
+		end
+		
+		def release_processing(queue_name)
+			raise RuntimeError, "Backend is not processing a request!" unless @processing.positive?
+			raise RuntimeError, "Backend is not processing queue #{queue_name.inspect}!" unless @processing_by_queue[queue_name].positive?
+			
+			@processing -= 1
+			@processing_by_queue[queue_name] -= 1
 		end
 		
 		def close_client

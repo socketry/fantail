@@ -4,7 +4,7 @@ Worker-aware HTTP load balancing with a global admission queue.
 
 [![Development Status](https://github.com/socketry/fantail/workflows/Test/badge.svg)](https://github.com/socketry/fantail/actions?workflow=Test)
 
-Fantail routes each request to a worker which is ready to process it. It separates the short-lived request-processing reservation from the potentially longer response exchange, so another request can begin after response headers arrive while the previous response body is still streaming.
+Fantail routes each request to a worker which is ready to process it. Configurable request queues can express worker affinity and load-shedding policy while a central scheduler remains responsible for matching requests to worker permits. Fantail separates the short-lived request-processing reservation from the potentially longer response exchange, so another request can begin after response headers arrive while the previous response body is still streaming.
 
 ## Usage
 
