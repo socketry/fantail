@@ -40,7 +40,7 @@ module Fantail
 		
 		# A queue admission rejection.
 		class Rejection
-			# @parameter queue [Configuration::Queue] The queue which rejected admission.
+			# @parameter queue [Queue] The queue which rejected admission.
 			def initialize(queue)
 				@queue = queue
 			end

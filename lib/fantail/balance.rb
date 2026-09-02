@@ -10,7 +10,7 @@ module Fantail
 		class Spread
 			# Select the least-active backend, using its name for deterministic ties.
 			# @parameter backends [Array(Backend)] Eligible backends with available permits.
-			# @parameter queue [Configuration::Queue] The request queue being scheduled.
+			# @parameter queue [Queue] The request queue being scheduled.
 			# @parameter request [Protocol::HTTP::Request] The pending request.
 			# @returns [Backend | Nil] The preferred backend.
 			def select(backends, queue:, request:)
@@ -27,7 +27,7 @@ module Fantail
 			
 			# Select the backend with the most active work for the affinity.
 			# @parameter backends [Array(Backend)] Eligible backends with available permits.
-			# @parameter queue [Configuration::Queue] The request queue being scheduled.
+			# @parameter queue [Queue] The request queue being scheduled.
 			# @parameter request [Protocol::HTTP::Request] The pending request.
 			# @returns [Backend | Nil] The preferred backend.
 			def select(backends, queue:, request:)

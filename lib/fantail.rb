@@ -5,6 +5,7 @@
 
 require_relative "fantail/version"
 require_relative "fantail/balance"
+require_relative "fantail/queue"
 require_relative "fantail/configuration"
 require_relative "fantail/endpoint"
 require_relative "fantail/backend"

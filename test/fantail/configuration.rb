@@ -62,11 +62,18 @@ describe Fantail::Configuration do
 		end
 	end
 	
-	it "builds configuration with an explicit loader" do
-		configuration = subject.build do |loader|
-			loader.queue(:default)
+	it "builds configuration with an explicit builder" do
+		configuration_builder = nil
+		queue_builder = nil
+		
+		configuration = subject.build do |builder|
+			configuration_builder = builder
+			builder.queue(:default){|builder| queue_builder = builder}
 		end
 		
+		expect(configuration_builder).to be_a(Fantail::Configuration::Builder)
+		expect(queue_builder).to be_a(Fantail::Queue::Builder)
+		expect(configuration.queues.fetch(:default)).to be_a(Fantail::Queue)
 		expect(configuration.default_queue_name).to be == :default
 	end
 	

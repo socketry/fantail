@@ -65,7 +65,7 @@ The scheduler owns all permits. Request queues can decide which workers are elig
 
 ## Request Queues
 
-Fantail configuration is trusted application Ruby evaluated using a scoped configuration loader:
+Fantail configuration is trusted application Ruby evaluated using a scoped configuration builder:
 
 ~~~ ruby
 # config/fantail.rb
