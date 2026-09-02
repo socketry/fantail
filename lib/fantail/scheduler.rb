@@ -62,6 +62,7 @@ module Fantail
 			@guard = Thread::Mutex.new
 			@pending = configuration.queues.to_h{|name, queue| [name, []]}
 			@pending_count = 0
+			@closed = false
 			
 			@registry.on_available{schedule}
 		end
@@ -71,7 +72,9 @@ module Fantail
 			queue = @configuration.classify(request)
 			entry = nil
 			result = @guard.synchronize do
-				if reservation = reserve(queue, request)
+				if @closed
+					nil
+				elsif reservation = reserve(queue, request)
 					reservation
 				elsif @registry.empty?
 					nil
@@ -88,22 +91,56 @@ module Fantail
 			
 			return result if result
 			return nil unless entry
-			return entry.assignment if entry.assignment
+			
+			if assignment = entry.assignment
+				entry = nil
+				return assignment
+			end
 			
 			if wait_limit = queue.wait_limit
 				remaining = wait_limit - (now - entry.enqueued_at)
 				result = entry.result.dequeue(timeout: remaining) if remaining.positive?
-				return result if result
+				if result
+					entry = nil
+					return result
+				end
 				
-				return cancel(entry)
+				result = cancel(entry)
+				entry = nil
+				return result
 			else
-				return entry.result.dequeue
+				result = entry.result.dequeue
+				entry = nil
+				return result
+			end
+		ensure
+			if entry && assignment = cancel(entry, rejection: false)
+				# The request was assigned concurrently but its waiting task was
+				# interrupted before receiving the reservation. No upstream request
+				# was started, so release both the permit and response exchange.
+				assignment.failed
 			end
 		end
 		
 		# Try to dispatch pending requests after capacity changes.
 		def schedule
-			@guard.synchronize{schedule_locked}
+			@guard.synchronize{schedule_locked unless @closed}
+		end
+		
+		# Stop accepting requests and wake all tasks waiting for a permit.
+		def close
+			entries = @guard.synchronize do
+				return if @closed
+				
+				@closed = true
+				entries = @pending.values.flatten(1)
+				@pending.each_value(&:clear)
+				@pending_count = 0
+				entries.each{|entry| entry.pending = false}
+				entries
+			end
+			
+			entries.each{|entry| entry.result.close}
 		end
 		
 		# @parameter queue_name [Symbol | String | Nil] An optional queue to inspect.
@@ -133,14 +170,14 @@ module Fantail
 			false
 		end
 		
-		def cancel(entry)
+		def cancel(entry, rejection: true)
 			@guard.synchronize do
 				return entry.assignment unless entry.pending
 				
 				@pending.fetch(entry.queue.name).delete(entry)
 				entry.pending = false
 				@pending_count -= 1
-				Rejection.new(entry.queue)
+				Rejection.new(entry.queue) if rejection
 			end
 		end
 		

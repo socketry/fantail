@@ -240,6 +240,79 @@ describe Fantail::Scheduler do
 		registry&.close
 	end
 	
+	it "withdraws an interrupted request waiting for a permit" do
+		configuration = make_configuration do |config|
+			config.queue :default
+		end
+		registry = make_registry
+		add_workers(registry, 1)
+		scheduler = subject.new(registry, configuration)
+		held = scheduler.acquire(Protocol::HTTP::Request["GET", "/held"])
+		waiting_task = Async{scheduler.acquire(Protocol::HTTP::Request["GET", "/waiting"])}
+		Fiber.scheduler.yield
+		
+		expect(scheduler.pending_count).to be == 1
+		waiting_task.stop
+		expect(scheduler.pending_count).to be == 0
+		
+		finish(held)
+		held = nil
+		replacement = scheduler.acquire(Protocol::HTTP::Request["GET", "/replacement"])
+		expect(replacement.backend.name).to be == "worker-1"
+	ensure
+		finish(held) if held
+		finish(replacement) if replacement
+		waiting_task&.stop
+		registry&.close
+	end
+	
+	it "releases an assignment when interruption races with dispatch" do
+		configuration = make_configuration do |config|
+			config.queue :default
+		end
+		registry = make_registry
+		add_workers(registry, 1)
+		scheduler = subject.new(registry, configuration)
+		held = scheduler.acquire(Protocol::HTTP::Request["GET", "/held"])
+		waiting_task = Async{scheduler.acquire(Protocol::HTTP::Request["GET", "/waiting"])}
+		Fiber.scheduler.yield
+		
+		finish(held)
+		held = nil
+		waiting_task.stop
+		
+		backend = registry["worker-1"]
+		expect(backend.processing).to be == 0
+		expect(backend.exchanges).to be == 0
+		expect(backend).to be(:available?)
+	ensure
+		finish(held) if held
+		waiting_task&.stop
+		registry&.close
+	end
+	
+	it "wakes pending requests when closed" do
+		configuration = make_configuration do |config|
+			config.queue :default
+		end
+		registry = make_registry
+		add_workers(registry, 1)
+		scheduler = subject.new(registry, configuration)
+		held = scheduler.acquire(Protocol::HTTP::Request["GET", "/held"])
+		waiting_task = Async{scheduler.acquire(Protocol::HTTP::Request["GET", "/waiting"])}
+		Fiber.scheduler.yield
+		
+		expect(scheduler.pending_count).to be == 1
+		scheduler.close
+		expect(waiting_task.wait).to be_nil
+		expect(scheduler.pending_count).to be == 0
+		expect(scheduler.acquire(Protocol::HTTP::Request["GET", "/closed"])).to be_nil
+	ensure
+		finish(held) if held
+		waiting_task&.stop
+		registry&.close
+	end
+	
 	it "supports application admission policies" do
 		configuration = make_configuration do |config|
 			config.queue(:default){|queue| queue.admit{|request, **| request.path != "/shed"}}

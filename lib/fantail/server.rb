@@ -46,8 +46,9 @@ module Fantail
 			end
 		end
 		
-		# Close the endpoint registry.
+		# Stop pending requests and close the endpoint registry.
 		def close
+			@proxy.scheduler.close
 			@registry.close
 		end
 	end
