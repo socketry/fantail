@@ -129,6 +129,28 @@ describe Fantail::Scheduler do
 		registry&.close
 	end
 	
+	it "accepts an assignment made while entering the pending queue" do
+		selections = 0
+		policy = Object.new
+		policy.define_singleton_method(:select) do |backends, **|
+			selections += 1
+			backends.first unless selections == 1
+		end
+		configuration = make_configuration do |config|
+			config.queue(:default){|queue| queue.balance policy}
+		end
+		registry = make_registry
+		add_workers(registry, 1)
+		scheduler = subject.new(registry, configuration)
+		
+		reservation = scheduler.acquire(Protocol::HTTP::Request["GET", "/"])
+		expect(reservation.backend.name).to be == "worker-1"
+		expect(selections).to be == 2
+	ensure
+		finish(reservation) if reservation
+		registry&.close
+	end
+	
 	it "uses another queue when the oldest queue has no eligible worker" do
 		configuration = make_configuration do |config|
 			config.queue :special do |queue|
@@ -237,6 +259,28 @@ describe Fantail::Scheduler do
 		expect(scheduler.pending_count).to be == 0
 	ensure
 		finish(held) if held
+		registry&.close
+	end
+	
+	it "dispatches a waiting request before its wait limit" do
+		configuration = make_configuration do |config|
+			config.queue(:default){|queue| queue.wait_limit 1}
+		end
+		registry = make_registry
+		add_workers(registry, 1)
+		scheduler = subject.new(registry, configuration)
+		held = scheduler.acquire(Protocol::HTTP::Request["GET", "/held"])
+		waiting_task = Async{scheduler.acquire(Protocol::HTTP::Request["GET", "/waiting"])}
+		Fiber.scheduler.yield
+		
+		finish(held)
+		held = nil
+		reservation = waiting_task.wait
+		expect(reservation.backend.name).to be == "worker-1"
+	ensure
+		finish(held) if held
+		finish(reservation) if reservation
+		waiting_task&.stop
 		registry&.close
 	end
 	

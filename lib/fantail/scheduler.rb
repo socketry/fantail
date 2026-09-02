@@ -89,8 +89,7 @@ module Fantail
 				end
 			end
 			
-			return result if result
-			return nil unless entry
+			return result unless entry
 			
 			if assignment = entry.assignment
 				entry = nil
