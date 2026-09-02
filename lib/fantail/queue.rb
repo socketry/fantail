@@ -90,8 +90,8 @@ module Fantail
 					depth_limit: @depth_limit,
 					wait_limit: @wait_limit,
 					shed_status: @shed_status,
-					shed_headers: @shed_headers,
-				)
+					shed_headers: @shed_headers.dup.freeze,
+				).freeze
 			end
 		end
 		
@@ -113,8 +113,7 @@ module Fantail
 			@depth_limit = depth_limit
 			@wait_limit = wait_limit
 			@shed_status = shed_status
-			@shed_headers = shed_headers.freeze
-			freeze
+			@shed_headers = shed_headers
 		end
 		
 		attr :name

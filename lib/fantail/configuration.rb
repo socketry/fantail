@@ -83,11 +83,11 @@ module Fantail
 				raise ArgumentError, "Default queue #{default_queue_name.inspect} is not defined!" unless @queues.key?(default_queue_name)
 				
 				Configuration.new(
-					queues: @queues,
+					queues: @queues.dup.freeze,
 					default_queue_name: default_queue_name,
 					pending_limit: @pending_limit,
 					permit_limit: @permit_limit,
-				)
+				).freeze
 			end
 		end
 		
@@ -131,11 +131,10 @@ module Fantail
 		# @parameter pending_limit [Integer | Nil] The global pending request limit.
 		# @parameter permit_limit [Integer] The processing permits per worker.
 		def initialize(queues:, default_queue_name:, pending_limit:, permit_limit:)
-			@queues = queues.dup.freeze
+			@queues = queues
 			@default_queue_name = default_queue_name
 			@pending_limit = pending_limit
 			@permit_limit = permit_limit
-			freeze
 		end
 		
 		attr :queues
