@@ -1,6 +1,6 @@
 # Releases
 
-## Unreleased
+## v0.1.0
 
   - Add configurable request queues, worker affinity policies, central permit scheduling, and load shedding.
 

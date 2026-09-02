@@ -16,6 +16,10 @@ Please see the [project documentation](https://socketry.github.io/fantail/) for 
 
 Please see the [project releases](https://socketry.github.io/fantail/releases/index) for all releases.
 
+### v0.1.0
+
+  - Add configurable request queues, worker affinity policies, central permit scheduling, and load shedding.
+
 ### v0.0.1
 
   - Initial implementation.
