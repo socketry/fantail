@@ -9,22 +9,22 @@ require "tmpdir"
 
 describe Fantail::Configuration do
 	let(:configuration) do
-		subject.define do |config|
-			config.queue :grpc do |queue|
-				queue.match{|request| request.headers["content-type"]&.start_with?("application/grpc")}
-				queue.balance :pack
+		subject.build do
+			queue :grpc do
+				match {|request| request.headers["content-type"]&.start_with?("application/grpc")}
+				balance :pack
 			end
 			
-			config.queue :liquid do |queue|
-				queue.balance :spread
-				queue.depth_limit 500
-				queue.wait_limit 0.25
-				queue.shed status: 429, retry_after: 1
+			queue :liquid do
+				balance :spread
+				depth_limit 500
+				wait_limit 0.25
+				shed status: 429, retry_after: 1
 			end
 			
-			config.default_queue :liquid
-			config.pending_limit 1_000
-			config.permit_limit 2
+			default_queue :liquid
+			pending_limit 1_000
+			permit_limit 2
 		end
 	end
 	
@@ -43,29 +43,36 @@ describe Fantail::Configuration do
 	it "loads trusted application configuration" do
 		Dir.mktmpdir do |directory|
 			path = File.join(directory, "fantail.rb")
-			File.write(path, <<~RUBY)
-				Fantail::Configuration.define do |config|
-					config.queue :default
-				end
-			RUBY
+			File.write(path, "queue :default\n")
 			
 			loaded = subject.load(path)
 			expect(loaded.default_queue_name).to be == :default
 		end
 	end
 	
-	it "rejects configuration files with the wrong result" do
+	it "loads configuration files relative to the current file" do
 		Dir.mktmpdir do |directory|
+			queues_path = File.join(directory, "queues.rb")
 			path = File.join(directory, "fantail.rb")
-			File.write(path, "Object.new\n")
+			File.write(queues_path, "queue :default\n")
+			File.write(path, "load_file 'queues.rb'\n")
 			
-			expect{subject.load(path)}.to raise_exception(TypeError)
+			loaded = subject.load(path)
+			expect(loaded.default_queue_name).to be == :default
 		end
+	end
+	
+	it "builds configuration with an explicit loader" do
+		configuration = subject.build do |loader|
+			loader.queue(:default)
+		end
+		
+		expect(configuration.default_queue_name).to be == :default
 	end
 	
 	it "rejects invalid balance policies" do
 		expect do
-			subject.define do |config|
+			subject.build do |config|
 				config.queue(:default){|queue| queue.balance Object.new}
 			end
 		end.to raise_exception(ArgumentError)

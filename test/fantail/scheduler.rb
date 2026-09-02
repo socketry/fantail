@@ -12,7 +12,7 @@ describe Fantail::Scheduler do
 	include Fantail::Fixtures
 	
 	def make_configuration(permit_limit: 1, pending_limit: nil, &block)
-		Fantail::Configuration.define do |configuration|
+		Fantail::Configuration.build do |configuration|
 			configuration.permit_limit permit_limit
 			configuration.pending_limit pending_limit if pending_limit
 			block.call(configuration)

@@ -4,6 +4,7 @@
 # Copyright, 2026, by Samuel Williams.
 
 require_relative "balance"
+require_relative "loader"
 
 module Fantail
 	# Immutable request queue and admission configuration.
@@ -122,33 +123,40 @@ module Fantail
 			end
 		end
 		
-		# Build and finalize a configuration.
-		# @yields {|configuration| ...} The mutable configuration builder.
+		# Build and finalize a configuration using a scoped loader.
+		# @parameter root [String] The root for relative configuration files.
+		# @yields {|loader| ...} The configuration loader.
 		# @returns [Configuration] The immutable configuration.
-		def self.define
+		def self.build(root: Dir.pwd, &block)
 			configuration = new
-			yield configuration if block_given?
+			loader = Loader.new(configuration, root)
+			
+			if block
+				if block.arity.zero?
+					loader.instance_eval(&block)
+				else
+					block.call(loader)
+				end
+			end
+			
 			configuration.finalize
 		end
 		
 		# @returns [Configuration] A single-queue, single-permit configuration.
 		def self.default
-			@default ||= define do |configuration|
-				configuration.queue(:default)
-				configuration.default_queue(:default)
+			@default ||= build do
+				queue(:default)
+				default_queue(:default)
 			end
 		end
 		
-		# Load trusted application configuration. The final expression must be a Configuration.
-		def self.load(path)
-			path = File.expand_path(path)
-			configuration = TOPLEVEL_BINDING.eval(File.read(path), path)
-			
-			unless configuration.is_a?(self)
-				raise TypeError, "#{path} must return a Fantail::Configuration!"
-			end
-			
-			configuration
+		# Load and finalize trusted application configuration files.
+		# @parameter paths [String | Array(String)] The configuration files to load.
+		# @returns [Configuration] The immutable configuration.
+		def self.load(paths)
+			configuration = new
+			Array(paths).each{|path| configuration.load_file(path)}
+			configuration.finalize
 		end
 		
 		# Initialize an empty mutable configuration builder.
@@ -161,6 +169,12 @@ module Fantail
 		
 		attr :queues
 		attr :default_queue_name
+		
+		# Load a trusted configuration file into this configuration.
+		# @parameter path [String] The configuration file to load.
+		def load_file(path)
+			Loader.load_file(self, path)
+		end
 		
 		# Define a named request queue. Matchers are evaluated in definition order.
 		def queue(name)

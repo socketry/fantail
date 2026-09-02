@@ -65,32 +65,32 @@ The scheduler owns all permits. Request queues can decide which workers are elig
 
 ## Request Queues
 
-Fantail configuration is trusted application Ruby. The file's final expression must be an immutable `Fantail::Configuration`:
+Fantail configuration is trusted application Ruby evaluated using a scoped configuration loader:
 
 ~~~ ruby
 # config/fantail.rb
-Fantail::Configuration.define do |config|
-	config.queue :liquid do |queue|
-		queue.match{|request| request.path.start_with?("/render")}
-		queue.balance :spread
-		queue.depth_limit 500
-		queue.wait_limit 0.25
-		queue.shed status: 429, retry_after: 1
-	end
-	
-	config.queue :grpc do |queue|
-		queue.match do |request|
-			request.headers["content-type"]&.start_with?("application/grpc")
-		end
-		
-		queue.balance :pack, affinity: :grpc
-	end
-	
-	config.default_queue :liquid
-	config.pending_limit 1_000
-	config.permit_limit 1
+queue :liquid do
+	match{|request| request.path.start_with?("/render")}
+	balance :spread
+	depth_limit 500
+	wait_limit 0.25
+	shed status: 429, retry_after: 1
 end
+
+queue :grpc do
+	match do |request|
+		request.headers["content-type"]&.start_with?("application/grpc")
+	end
+	
+	balance :pack, affinity: :grpc
+end
+
+default_queue :liquid
+pending_limit 1_000
+permit_limit 1
 ~~~
+
+Configuration can be split into files relative to the file being evaluated using `load_file "queues.rb"`.
 
 Matchers are evaluated in definition order, followed by the default queue. Across queues, the oldest eligible head request is dispatched first. If that request has no eligible worker, another queue can use the available permit.
 
@@ -103,7 +103,9 @@ The built-in `:spread` policy prefers the least-active worker. The `:pack` polic
 Applications can add an admission policy with either a block or an object implementing `admit?(request, queue:, pending:)`:
 
 ~~~ ruby
-queue.admit do |request, queue:, pending:|
-	pending < application_limit_for(queue.name)
+queue :default do
+	admit do |request, queue:, pending:|
+		pending < application_limit_for(queue.name)
+	end
 end
 ~~~
