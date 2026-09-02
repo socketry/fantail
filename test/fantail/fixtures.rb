@@ -30,17 +30,17 @@ module Fantail
 			end
 		end
 		
-		def make_registry(exchange_limit: 8, &client_factory)
+		def make_registry(exchange_limit: 8, permit_limit: 1, &client_factory)
 			@clients = {}
 			
-			backend_factory = proc do |endpoint, limit, available|
+			backend_factory = proc do |endpoint, exchange_limit, backend_permit_limit, available|
 				client = client_factory&.call(endpoint) || Client.new
 				@clients[endpoint.name] = client
 				
-				Backend.new(endpoint, client, exchange_limit: limit, &available)
+				Backend.new(endpoint, client, exchange_limit: exchange_limit, permit_limit: backend_permit_limit, &available)
 			end
 			
-			Registry.new(exchange_limit: exchange_limit, backend_factory: backend_factory)
+			Registry.new(exchange_limit: exchange_limit, permit_limit: permit_limit, backend_factory: backend_factory)
 		end
 	end
 end

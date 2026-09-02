@@ -4,9 +4,11 @@
 # Copyright, 2026, by Samuel Williams.
 
 require "fantail"
+require "sus/fixtures/async/reactor_context"
 require_relative "fixtures"
 
 describe Fantail::Registry do
+	include Sus::Fixtures::Async::ReactorContext
 	include Fantail::Fixtures
 	
 	let(:registry) {make_registry}
@@ -44,7 +46,8 @@ describe Fantail::Registry do
 	
 	it "drains a retired backend before closing it" do
 		registry.replace([{name: "worker-1", url: "http://127.0.0.1:9301"}])
-		backend = registry.acquire
+		backend = registry["worker-1"]
+		backend.reserve
 		client = @clients.fetch("worker-1")
 		
 		backend.processed
@@ -60,7 +63,8 @@ describe Fantail::Registry do
 	
 	it "only permits one request to be processed at a time" do
 		registry.replace([{name: "worker-1", url: "http://127.0.0.1:9301"}])
-		backend = registry.acquire
+		backend = registry["worker-1"]
+		backend.reserve
 		
 		expect(backend.name).to be == "worker-1"
 		expect(backend).to be(:processing?)
@@ -70,7 +74,21 @@ describe Fantail::Registry do
 		expect(backend).not.to be(:processing?)
 	end
 	
-	it "returns nil when no endpoints exist" do
-		expect(registry.acquire).to be_nil
+	it "supports multiple processing permits" do
+		registry.close
+		registry = make_registry(permit_limit: 2)
+		registry.replace([{name: "worker-1", url: "http://127.0.0.1:9301"}])
+		backend = registry["worker-1"]
+		
+		expect(backend.reserve(:grpc)).to be_truthy
+		expect(backend.reserve(:grpc)).to be_truthy
+		expect(backend.reserve(:grpc)).to be_falsey
+		expect(backend.processing_for(:grpc)).to be == 2
+		
+		backend.failed(:grpc)
+		backend.failed(:grpc)
+	ensure
+		registry&.close
 	end
+	
 end

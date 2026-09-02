@@ -40,6 +40,7 @@ describe Fantail::Server do
 			control_bound_endpoint = control_endpoint.bound
 			
 			server = subject.new(downstream_endpoint, control_bound_endpoint)
+			expect(server.scheduler).to be_a(Fantail::Scheduler)
 			server_task = server.run
 			
 			monitor = Fantail::Monitor.new(control_endpoint)
