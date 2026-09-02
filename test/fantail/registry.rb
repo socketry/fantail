@@ -46,7 +46,8 @@ describe Fantail::Registry do
 	
 	it "drains a retired backend before closing it" do
 		registry.replace([{name: "worker-1", url: "http://127.0.0.1:9301"}])
-		backend = registry.acquire
+		backend = registry["worker-1"]
+		backend.reserve
 		client = @clients.fetch("worker-1")
 		
 		backend.processed
@@ -62,7 +63,8 @@ describe Fantail::Registry do
 	
 	it "only permits one request to be processed at a time" do
 		registry.replace([{name: "worker-1", url: "http://127.0.0.1:9301"}])
-		backend = registry.acquire
+		backend = registry["worker-1"]
+		backend.reserve
 		
 		expect(backend.name).to be == "worker-1"
 		expect(backend).to be(:processing?)
@@ -70,24 +72,6 @@ describe Fantail::Registry do
 		
 		backend.failed
 		expect(backend).not.to be(:processing?)
-	end
-	
-	it "wakes an acquisition when a permit is released" do
-		registry.replace([{name: "worker-1", url: "http://127.0.0.1:9301"}])
-		first = registry.acquire
-		second_task = Async{registry.acquire}
-		Fiber.scheduler.yield
-		
-		expect(second_task).not.to be(:finished?)
-		first.failed
-		first = nil
-		
-		second = second_task.wait
-		expect(second.name).to be == "worker-1"
-	ensure
-		first&.failed
-		second&.failed
-		second_task&.stop
 	end
 	
 	it "supports multiple processing permits" do
@@ -107,7 +91,4 @@ describe Fantail::Registry do
 		registry&.close
 	end
 	
-	it "returns nil when no endpoints exist" do
-		expect(registry.acquire).to be_nil
-	end
 end

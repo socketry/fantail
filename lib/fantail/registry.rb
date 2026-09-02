@@ -4,7 +4,6 @@
 # Copyright, 2026, by Samuel Williams.
 
 require "async/bus/controller"
-require "async/queue"
 
 require_relative "endpoint"
 require_relative "backend"
@@ -23,8 +22,6 @@ module Fantail
 			
 			@guard = Thread::Mutex.new
 			@backends = {}
-			@notifications = Async::Queue.new
-			@waiting = 0
 			@available = nil
 			@closed = false
 		end
@@ -77,28 +74,6 @@ module Fantail
 			self.size
 		end
 		
-		# Acquire the next backend with processing capacity.
-		# @returns [Backend | Nil] An admitted backend, or nil if no endpoints exist.
-		def acquire
-			waiting = false
-			
-			loop do
-				return nil if self.empty?
-				backend = backends.find{|candidate| candidate.reserve}
-				return backend if backend
-				
-				unless waiting
-					@guard.synchronize{@waiting += 1}
-					waiting = true
-					next
-				end
-				
-				return nil unless @notifications.dequeue
-			end
-		ensure
-			@guard.synchronize{@waiting -= 1} if waiting
-		end
-		
 		# @returns [Array(Backend)] A snapshot of active backends.
 		def backends
 			@guard.synchronize{@backends.values.dup}
@@ -140,7 +115,6 @@ module Fantail
 				@backends.values.tap{@backends = {}}
 			end
 			
-			@notifications.close
 			backends.each(&:retire)
 		end
 		
@@ -151,11 +125,8 @@ module Fantail
 		end
 		
 		def notify_available
-			available, waiting = @guard.synchronize{[@available, @waiting]}
-			@notifications.enqueue(true) if waiting.positive?
+			available = @guard.synchronize{@available}
 			available&.call
-		rescue Async::Queue::ClosedError
-			# The registry is already shutting down.
 		end
 		
 		def make_backend(endpoint, exchange_limit, permit_limit, available)
