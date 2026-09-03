@@ -1,6 +1,6 @@
 ---
 template: diagram
-duration: 40
+duration: 19
 marker: Results
 transition: fade
 ---
@@ -8,11 +8,11 @@ transition: fade
 <div class="fantail-slide results-slide">
 	<div class="fantail-heading">
 		<p class="fantail-kicker">Representative benchmark</p>
-		<h1>Equivalent capacity before saturation</h1>
+		<h1>Comparable throughput before saturation</h1>
 		<p>60 workers · CPU-heavy requests · five-minute fixed-rate runs</p>
 	</div>
 	<table class="results-table">
-		<thead><tr><th>Offered</th><th>Strategy</th><th>Successful RPS</th><th>Mean</th><th>p99</th><th>Rejected</th></tr></thead>
+		<thead><tr><th>Offered</th><th>Strategy</th><th>Successful RPS</th><th>200 mean</th><th>200 p99</th><th>Rejected</th></tr></thead>
 		<tbody>
 			<tr><td>100 RPS</td><td>Shared listener</td><td>99.98</td><td>465 ms</td><td>712 ms</td><td>0</td></tr>
 			<tr class="fantail-result"><td>100 RPS</td><td>Fantail</td><td>100.00</td><td>477 ms</td><td>722 ms</td><td>0</td></tr>

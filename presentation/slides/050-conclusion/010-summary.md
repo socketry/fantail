@@ -1,6 +1,6 @@
 ---
 template: diagram
-duration: 35
+duration: 26
 marker: Summary
 transition: fade
 ---

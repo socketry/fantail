@@ -1,6 +1,6 @@
 ---
 template: diagram
-duration: 30
+duration: 23
 marker: Endpoint Load Balancer
 transition: fade
 ---
@@ -21,4 +21,4 @@ transition: fade
 
 ---
 
-General load balancers traditionally use round-robin, least-recently-used or other approaches to distributing requests. In cases where utilization is measured, it's often a trailing indicator, resulting in the poor request distribution and over-comitted workers.
+General-purpose load balancers commonly use round-robin, least-request, or similar policies. These approximate capacity when selecting an endpoint, while utilization reported with a response is necessarily a trailing signal. Once a request is committed to an endpoint's connection pool, it often cannot be reassigned merely because another worker becomes available.

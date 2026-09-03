@@ -5,8 +5,8 @@ marker: Desirable State
 transition: fade
 ---
 
-Keep pending requests globally assignable until a worker advertises a permit.
+Keep each request globally assignable until a compatible worker is ready to begin it.
 
 ---
 
-This is the scheduling property we want. A permit is the worker's leading capacity signal: it says the worker can begin another request now. The next eligible worker with a permit receives the oldest compatible request, and no request is hidden inside an unavailable worker's local queue or connection pool.
+This is the premise Fantail is built around: admission before assignment. Pending requests wait once, in a global queue. Workers advertise permits as a leading capacity signal, and the oldest compatible request is assigned only when a permit can be reserved. Work therefore does not disappear into a worker-local queue or connection pool before it can run.

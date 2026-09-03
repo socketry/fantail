@@ -1,6 +1,6 @@
 ---
 template: diagram
-duration: 25
+duration: 18
 marker: Falcon Cluster
 transition: fade
 ---
@@ -33,4 +33,4 @@ transition: fade
 
 ---
 
-Fantail operates in front of a falcon cluster: A Falcon cluster makes each worker directly addressable rather than having every process accept connections from one shared listener. The supervisor manages those processes, while Fantail uses their distinct endpoints to decide which worker should receive each request.
+Fantail operates in front of a Falcon cluster. Each worker has a distinct HTTP endpoint rather than sharing a single listener. The supervisor manages those processes, while Fantail uses their endpoints to decide which worker should receive each request.

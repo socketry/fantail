@@ -366,6 +366,55 @@
 	opacity: 0.7;
 }
 
+.cluster-slide {
+	justify-content: space-between;
+}
+
+.supervisor-boundary {
+	position: relative;
+	margin: auto 0 0;
+	padding: 2.5rem 2rem 2rem;
+	border: 2px solid color-mix(in srgb, var(--slide-text) 28%, transparent);
+	border-radius: 1.25rem;
+}
+
+.supervisor-label {
+	position: absolute;
+	top: 0;
+	left: 2rem;
+	padding: 0.45rem 0.8rem;
+	background: var(--surface);
+	transform: translateY(-50%);
+	font-family: var(--font-mono);
+	font-size: 0.85rem;
+	font-weight: 700;
+	letter-spacing: 0.05em;
+	text-transform: uppercase;
+}
+
+.cluster-topology {
+	display: grid;
+	grid-template-columns: 1fr auto 1.65fr;
+	align-items: center;
+	gap: 2rem;
+}
+
+.cluster-routes {
+	display: grid;
+	justify-items: center;
+	gap: 0.25rem;
+	color: var(--fantail-cyan);
+}
+
+.cluster-routes span {
+	font-family: var(--font-mono);
+	font-size: 0.75rem;
+}
+
+.cluster-routes b {
+	font-size: 2.5rem;
+}
+
 .lifecycle {
 	display: grid;
 	grid-template-columns: 1fr auto 1fr auto 1fr auto 1fr;

@@ -1,6 +1,6 @@
 ---
 template: diagram
-duration: 45
+duration: 16
 marker: Fantail
 transition: fade
 ---
@@ -31,4 +31,4 @@ transition: fade
 
 ---
 
-Fantail sits next to the application workers. Workers are registered dynamically. The scheduler owns their processing permits and only assigns a request when an eligible permit can be reserved.
+Fantail sits next to the application workers. Workers register dynamically and advertise processing permits. Fantail keeps pending requests globally assignable and dispatches one only when an eligible worker permit can be reserved.

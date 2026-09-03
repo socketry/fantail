@@ -1,6 +1,6 @@
 ---
 template: diagram
-duration: 50
+duration: 30
 marker: Over-admission
 transition: fade
 ---
@@ -55,4 +55,4 @@ transition: fade
 
 ---
 
-With a mixed workload, especially on event-driven servers, poor request distribution can cause I/O bound requests to be unfairly delayed due to CPU bound requests monopolizing the event loop. Without leading indicators and request classification, it can be difficult to distribute requests in a way that avoids these problems.
+With mixed workloads, especially on event-driven servers, a CPU-bound request can monopolize a worker and unfairly delay I/O-bound work assigned behind it. Once assigned, that work is no longer globally available to another suitable worker. Leading utilization signals like worker permits and request classification let the load balancer make this admission decision before dispatch, rather than infer capacity later from response utilization.

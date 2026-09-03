@@ -1,6 +1,6 @@
 ---
 template: statement
-duration: 25
+duration: 21
 marker: The Problem
 transition: fade
 ---
@@ -9,4 +9,4 @@ Distributing requests is not the same as scheduling work.
 
 ---
 
-Load balancers distribute incoming requests to a set of servers. However, without understanding the types of requests, they are usually unable to efficiently distribute work without internal queueing. This is especially relevant to CPU-heavy requests which cannot be interleaved without increasing worst case latency.
+Load balancers distribute incoming requests across servers, but generally do not know whether a particular worker can begin a specific request immediately. This matters for CPU-heavy workloads: assigning overlapping CPU-bound requests to the same worker creates local queueing and increases tail latency.

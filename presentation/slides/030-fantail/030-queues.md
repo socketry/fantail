@@ -1,6 +1,6 @@
 ---
 template: diagram
-duration: 45
+duration: 22
 marker: Queue Policy
 transition: fade
 ---
@@ -8,7 +8,7 @@ transition: fade
 <div class="fantail-slide">
 	<div class="fantail-heading">
 		<p class="fantail-kicker">Application policy</p>
-		<h1>Different requests can ask different questions.</h1>
+		<h1>Different workloads need different admission policies.</h1>
 	</div>
 	<div class="queue-grid">
 		<div class="queue-card cpu-queue">

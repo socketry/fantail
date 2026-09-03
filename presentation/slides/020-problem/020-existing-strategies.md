@@ -1,6 +1,6 @@
 ---
 template: diagram
-duration: 30
+duration: 22
 marker: Shared Listener
 transition: fade
 ---
@@ -21,4 +21,4 @@ transition: fade
 
 ---
 
-The most basic servers typically use shared listeners with a shared operating system socket accept queue. However, this may lead to inefficient request distribution as workers may accept more requests than it can process concurrently, leading to internal queueing or resource contention.
+Servers commonly use a shared listener backed by an operating-system socket accept queue. This distributes connections, but accepting a connection is only a proxy for request-processing capacity. A worker can accept a connection before it knows whether it can immediately process the request inside it, creating local queueing or resource contention.
