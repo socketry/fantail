@@ -21,4 +21,4 @@ transition: fade
 
 ---
 
-A general-purpose endpoint load balancer makes an earlier placement decision. Once selected, pending work may wait in that endpoint's connection pool rather than remain globally assignable. A different worker becoming available does not necessarily help the request that is already committed.
+General load balancers traditionally use round-robin, least-recently-used or other approaches to distributing requests. In cases where utilization is measured, it's often a trailing indicator, resulting in the poor request distribution and over-comitted workers.

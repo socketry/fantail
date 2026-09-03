@@ -55,4 +55,4 @@ transition: fade
 
 ---
 
-With a mixed workload, a worker may accept more work than it can usefully process. The shared listener makes an admission decision at the socket boundary, before it can distinguish a CPU-heavy request from work that can execute concurrently. Excess work then waits inside the chosen worker rather than remaining available to the next suitable worker, and utilization returned with the response describes what already happened; it is too late to prevent that placement. A permit based system answers the admission question before dispatch.
+With a mixed workload, especially on event-driven servers, poor request distribution can cause I/O bound requests to be unfairly delayed due to CPU bound requests monopolizing the event loop. Without leading indicators and request classification, it can be difficult to distribute requests in a way that avoids these problems.

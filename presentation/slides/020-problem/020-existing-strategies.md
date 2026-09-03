@@ -21,4 +21,4 @@ transition: fade
 
 ---
 
-A shared listener naturally lets a worker that can accept a socket take the next connection, but that does not necessarily mean it can begin the request inside it. It also cannot apply rich HTTP admission policy. The queue is shared before acceptance; after acceptance, the request belongs to that worker.
+The most basic servers typically use shared listeners with a shared operating system socket accept queue. However, this may lead to inefficient request distribution as workers may accept more requests than it can process concurrently, leading to internal queueing or resource contention.
