@@ -2,5 +2,5 @@
 
 source "https://rubygems.org"
 
-gem "presently", path: "../../presently-audio-recording"
+gem "presently", "~> 0.16"
 gem "io-watch"
