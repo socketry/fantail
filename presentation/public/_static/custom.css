@@ -1,0 +1,615 @@
+:root {
+	--fantail-blue: #42a5f5;
+	--fantail-cyan: #55d6be;
+	--fantail-orange: #ffad4d;
+	--fantail-red: #ff6b6b;
+	--fantail-muted: color-mix(in srgb, var(--slide-text) 62%, transparent);
+}
+
+.fantail-slide {
+	inset: 0;
+	display: flex;
+	flex-direction: column;
+	padding: 3.5rem 5rem;
+}
+
+.fantail-heading {
+	max-width: 74rem;
+}
+
+.fantail-heading h1 {
+	margin: 0;
+	font-size: 3.25rem;
+	line-height: 1.05;
+}
+
+.fantail-heading > p:not(.fantail-kicker) {
+	margin: 0.7rem 0 0;
+	font-size: 1.15rem;
+	opacity: 0.65;
+}
+
+.fantail-kicker {
+	margin: 0 0 0.5rem;
+	color: var(--fantail-cyan);
+	font-family: var(--font-mono);
+	font-size: 1rem;
+	font-weight: 700;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+}
+
+.strategy-grid,
+.queue-grid,
+.summary-grid {
+	display: grid;
+	gap: 1.5rem;
+	margin: auto 0;
+}
+
+.strategy-grid {
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.strategy-grid.single-strategy {
+	grid-template-columns: minmax(0, 1fr);
+	max-width: 52rem;
+	width: 100%;
+	margin-inline: auto;
+}
+
+.strategy-card,
+.queue-card,
+.summary-grid > div {
+	padding: 2rem;
+	background: color-mix(in srgb, var(--surface) 88%, var(--fantail-blue));
+	border: 1px solid color-mix(in srgb, var(--slide-text) 15%, transparent);
+	border-radius: 1.25rem;
+}
+
+.strategy-card h2,
+.queue-card h2 {
+	margin: 0 0 1.3rem;
+	font-size: 1.65rem;
+}
+
+.strategy-card p,
+.queue-card p {
+	margin: 1.3rem 0 0;
+	font-size: 1.15rem;
+	line-height: 1.45;
+	opacity: 0.75;
+}
+
+.mini-flow {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 0.75rem;
+	min-height: 5rem;
+}
+
+.mini-flow span {
+	padding: 0.75rem 1rem;
+	background: color-mix(in srgb, var(--fantail-blue) 12%, var(--surface));
+	border: 1px solid var(--fantail-blue);
+	border-radius: 0.65rem;
+	font-family: var(--font-mono);
+	font-size: 0.9rem;
+}
+
+.mini-flow b,
+.architecture-arrow {
+	color: var(--fantail-cyan);
+}
+
+.admission-flow {
+	display: grid;
+	grid-template-columns: 1fr auto 2.2fr;
+	align-items: center;
+	gap: 1.5rem;
+	margin: auto 0 1.5rem;
+}
+
+.listener-queue,
+.worker-admission {
+	padding: 1.25rem;
+	background: color-mix(in srgb, var(--surface) 88%, var(--fantail-blue));
+	border: 1px solid color-mix(in srgb, var(--slide-text) 18%, transparent);
+	border-radius: 1rem;
+}
+
+.listener-queue {
+	display: grid;
+	gap: 1rem;
+	text-align: center;
+}
+
+.request-stack {
+	display: flex;
+	justify-content: center;
+	gap: 0.45rem;
+}
+
+.request {
+	padding: 0.45rem 0.65rem;
+	border-radius: 0.45rem;
+	font-family: var(--font-mono);
+	font-size: 0.72rem;
+	font-weight: 700;
+}
+
+.request.cpu {background: color-mix(in srgb, var(--fantail-orange) 35%, var(--surface));}
+.request.io {background: color-mix(in srgb, var(--fantail-cyan) 30%, var(--surface));}
+.request.short {background: color-mix(in srgb, var(--fantail-blue) 30%, var(--surface));}
+
+.admission-arrow {
+	color: var(--fantail-cyan);
+	font-size: 2.5rem;
+}
+
+.worker-admission-grid {
+	display: grid;
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+	gap: 0.8rem;
+}
+
+.worker-admission {
+	display: grid;
+	gap: 0.65rem;
+	min-height: 8.5rem;
+	text-align: center;
+}
+
+.worker-admission.busy {
+	border-color: var(--fantail-red);
+	box-shadow: inset 0 -0.3rem 0 color-mix(in srgb, var(--fantail-red) 45%, transparent);
+}
+
+.active-work,
+.waiting-work,
+.capacity-note {
+	padding: 0.55rem;
+	border-radius: 0.45rem;
+	font-size: 0.78rem;
+}
+
+.active-work {background: color-mix(in srgb, var(--fantail-orange) 28%, var(--surface));}
+.io-work {background: color-mix(in srgb, var(--fantail-cyan) 25%, var(--surface));}
+.available-work {background: color-mix(in srgb, var(--fantail-blue) 22%, var(--surface));}
+.waiting-work {background: color-mix(in srgb, var(--fantail-red) 25%, var(--surface)); color: var(--fantail-red);}
+.capacity-note {opacity: 0.62;}
+
+.admission-caption {
+	margin: 0 0 1.1rem;
+	text-align: center;
+	opacity: 0.72;
+}
+
+.signal-timing {
+	display: grid;
+	grid-template-columns: 1fr auto 1fr;
+	align-items: center;
+	gap: 0.8rem;
+}
+
+.signal-card {
+	display: grid;
+	grid-template-columns: auto 1fr;
+	align-items: baseline;
+	gap: 0.8rem;
+	padding: 0.75rem 1rem;
+	border: 1px solid;
+	border-radius: 0.65rem;
+	font-size: 0.82rem;
+}
+
+.signal-card span {opacity: 0.68;}
+.leading-signal {border-color: var(--fantail-cyan);}
+.leading-signal strong {color: var(--fantail-cyan);}
+.trailing-signal {border-color: var(--fantail-orange);}
+.trailing-signal strong {color: var(--fantail-orange);}
+
+.signal-timing > b {
+	font-family: var(--font-mono);
+	font-size: 0.7rem;
+	opacity: 0.45;
+	text-transform: uppercase;
+}
+
+.tail-distribution {
+	display: grid;
+	grid-template-columns: 4fr 1fr;
+	gap: 1rem;
+	margin: auto 0 1.5rem;
+}
+
+.percentile-band {
+	display: grid;
+	grid-template-columns: auto 1fr;
+	align-items: center;
+	gap: 1.2rem;
+	min-height: 9rem;
+	padding: 1.4rem;
+	border: 1px solid color-mix(in srgb, var(--slide-text) 18%, transparent);
+	border-radius: 1rem;
+}
+
+.fast-band {background: color-mix(in srgb, var(--fantail-cyan) 11%, var(--surface));}
+.tail-band {background: color-mix(in srgb, var(--fantail-red) 14%, var(--surface)); border-color: var(--fantail-red);}
+
+.percentile-label {
+	display: grid;
+	gap: 0.2rem;
+	min-width: 7rem;
+}
+
+.percentile-label strong {
+	font-size: 2rem;
+}
+
+.tail-band .percentile-label strong {color: var(--fantail-red);}
+
+.percentile-label span {
+	font-size: 0.78rem;
+	opacity: 0.65;
+}
+
+.request-dots {
+	display: flex;
+	align-items: center;
+	gap: 0.45rem;
+}
+
+.request-dots span {
+	display: block;
+	width: 1.4rem;
+	height: 1.4rem;
+	background: var(--fantail-cyan);
+	border-radius: 50%;
+}
+
+.tail-band .request-dots span {background: var(--fantail-red);}
+
+.percentile-band p {
+	grid-column: 1 / -1;
+	margin: 0;
+	font-size: 0.92rem;
+	opacity: 0.7;
+}
+
+.causal-chain {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 0.7rem;
+	font-size: 0.88rem;
+}
+
+.causal-chain span {
+	padding: 0.65rem 0.8rem;
+	background: color-mix(in srgb, var(--fantail-blue) 10%, var(--surface));
+	border: 1px solid color-mix(in srgb, var(--slide-text) 15%, transparent);
+	border-radius: 0.55rem;
+}
+
+.causal-chain b {color: var(--fantail-cyan);}
+.causal-chain .tail-outcome {border-color: var(--fantail-red); color: var(--fantail-red);}
+
+.architecture-slide {
+	justify-content: space-between;
+}
+
+.architecture {
+	display: grid;
+	grid-template-columns: 1fr auto 1fr auto 1.25fr auto 1.4fr;
+	align-items: center;
+	gap: 1rem;
+	margin: auto 0;
+}
+
+.architecture-node {
+	display: grid;
+	place-items: center;
+	min-height: 6rem;
+	padding: 1.25rem;
+	border: 1px solid color-mix(in srgb, var(--slide-text) 20%, transparent);
+	border-radius: 1rem;
+	text-align: center;
+}
+
+.architecture-arrow {
+	font-size: 2.5rem;
+}
+
+.fantail-node {
+	background: color-mix(in srgb, var(--fantail-cyan) 18%, var(--surface));
+	border: 2px solid var(--fantail-cyan);
+}
+
+.fantail-node strong {
+	font-size: 1.6rem;
+}
+
+.fantail-node small,
+.worker-node span {
+	margin-top: 0.35rem;
+	opacity: 0.7;
+}
+
+.worker-stack {
+	display: grid;
+	gap: 0.6rem;
+}
+
+.worker-node {
+	grid-template-columns: 1fr auto;
+	min-height: 0;
+	padding: 0.85rem 1rem;
+	background: color-mix(in srgb, var(--fantail-blue) 10%, var(--surface));
+	border-color: var(--fantail-blue);
+}
+
+.worker-node span {
+	margin: 0;
+	padding: 0.25rem 0.5rem;
+	color: var(--fantail-cyan);
+	font-family: var(--font-mono);
+	font-size: 0.75rem;
+}
+
+.architecture-caption,
+.queue-caption,
+.results-callout {
+	margin: 0;
+	text-align: center;
+	opacity: 0.7;
+}
+
+.cluster-slide {
+	justify-content: space-between;
+}
+
+.supervisor-boundary {
+	position: relative;
+	margin: auto 0 0;
+	padding: 2.5rem 2rem 2rem;
+	border: 2px solid color-mix(in srgb, var(--slide-text) 28%, transparent);
+	border-radius: 1.25rem;
+}
+
+.supervisor-label {
+	position: absolute;
+	top: 0;
+	left: 2rem;
+	padding: 0.45rem 0.8rem;
+	background: var(--surface);
+	transform: translateY(-50%);
+	font-family: var(--font-mono);
+	font-size: 0.85rem;
+	font-weight: 700;
+	letter-spacing: 0.05em;
+	text-transform: uppercase;
+}
+
+.cluster-topology {
+	display: grid;
+	grid-template-columns: 1fr auto 1.65fr;
+	align-items: center;
+	gap: 2rem;
+}
+
+.cluster-routes {
+	display: grid;
+	justify-items: center;
+	gap: 0.25rem;
+	color: var(--fantail-cyan);
+}
+
+.cluster-routes span {
+	font-family: var(--font-mono);
+	font-size: 0.75rem;
+}
+
+.cluster-routes b {
+	font-size: 2.5rem;
+}
+
+.lifecycle {
+	display: grid;
+	grid-template-columns: 1fr auto 1fr auto 1fr auto 1fr;
+	align-items: center;
+	margin: auto 0;
+}
+
+.lifecycle-step {
+	display: grid;
+	justify-items: center;
+	gap: 0.55rem;
+	padding: 1.7rem 1rem;
+	border: 2px solid var(--fantail-blue);
+	border-radius: 1rem;
+	text-align: center;
+}
+
+.lifecycle-step strong {
+	display: grid;
+	place-items: center;
+	width: 2.5rem;
+	height: 2.5rem;
+	background: var(--fantail-blue);
+	border-radius: 50%;
+	color: white;
+}
+
+.lifecycle-step small {
+	color: var(--fantail-cyan);
+	font-family: var(--font-mono);
+}
+
+.lifecycle-step.release {
+	border-color: var(--fantail-cyan);
+}
+
+.lifecycle-step.stream {
+	border-color: var(--fantail-orange);
+}
+
+.lifecycle-line {
+	width: 2rem;
+	height: 2px;
+	background: color-mix(in srgb, var(--slide-text) 35%, transparent);
+}
+
+.queue-grid {
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+	margin-bottom: 1.5rem;
+}
+
+.queue-card {
+	display: flex;
+	flex-direction: column;
+	min-height: 13rem;
+}
+
+.queue-card code {
+	margin-top: auto;
+	padding: 0.7rem;
+	border-radius: 0.5rem;
+	font-size: 0.82rem;
+	white-space: normal;
+}
+
+.cpu-queue {border-color: var(--fantail-blue);}
+.io-queue {border-color: var(--fantail-cyan);}
+.shed-queue {border-color: var(--fantail-orange);}
+
+.results-slide {
+	gap: 2rem;
+}
+
+.results-table {
+	width: 100%;
+	margin: auto 0;
+	border-collapse: separate;
+	border-spacing: 0;
+	font-size: 1rem;
+}
+
+.results-table th,
+.results-table td {
+	padding: 0.85rem 1rem;
+	border-bottom: 1px solid color-mix(in srgb, var(--slide-text) 14%, transparent);
+	text-align: right;
+}
+
+.results-table th:first-child,
+.results-table td:first-child,
+.results-table th:nth-child(2),
+.results-table td:nth-child(2) {
+	text-align: left;
+}
+
+.results-table th {
+	font-size: 0.82rem;
+	letter-spacing: 0.04em;
+	opacity: 0.6;
+	text-transform: uppercase;
+}
+
+.results-table .fantail-result td {
+	background: color-mix(in srgb, var(--fantail-cyan) 12%, transparent);
+	color: color-mix(in srgb, var(--fantail-cyan) 78%, var(--slide-text));
+}
+
+.results-table .fantail-result td:first-child {
+	border-left: 3px solid var(--fantail-cyan);
+}
+
+.overload-table {
+	font-size: 0.92rem;
+}
+
+.results-callout {
+	padding: 0.85rem 1rem;
+	background: color-mix(in srgb, var(--fantail-cyan) 12%, transparent);
+	border-radius: 0.65rem;
+	color: var(--fantail-cyan);
+	font-weight: 600;
+}
+
+.summary-grid {
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.summary-grid > div {
+	display: grid;
+	gap: 0.55rem;
+}
+
+.summary-grid strong {
+	color: var(--fantail-cyan);
+	font-size: 1.3rem;
+}
+
+.summary-grid span {
+	font-size: 1.05rem;
+	line-height: 1.4;
+	opacity: 0.72;
+}
+
+@media (max-width: 900px) {
+	.fantail-slide {
+		padding: 2rem;
+	}
+
+	.fantail-heading h1 {
+		font-size: 2.3rem;
+	}
+
+	.strategy-grid,
+	.queue-grid,
+	.summary-grid {
+		grid-template-columns: 1fr;
+	}
+
+	.admission-flow,
+	.tail-distribution {
+		grid-template-columns: 1fr;
+	}
+
+	.admission-arrow {
+		transform: rotate(90deg);
+		text-align: center;
+	}
+
+	.worker-admission-grid {
+		grid-template-columns: 1fr;
+	}
+
+	.causal-chain {
+		flex-wrap: wrap;
+	}
+
+	.signal-timing {
+		grid-template-columns: 1fr;
+	}
+
+	.signal-timing > b {
+		text-align: center;
+	}
+
+	.architecture {
+		transform: scale(0.72);
+		transform-origin: center;
+	}
+
+	.results-table {
+		font-size: 0.72rem;
+	}
+
+	.results-table th,
+	.results-table td {
+		padding: 0.5rem;
+	}
+}
