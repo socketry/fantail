@@ -79,11 +79,11 @@ GEM
       openssl (>= 3.3)
     io-watch (0.6.3)
     json (3.0.1)
-    live (0.19.0)
+    live (0.20.0)
       async-websocket (~> 0.27)
       protocol-websocket (~> 0.19)
       xrb (~> 0.10)
-    lively (0.23.0)
+    lively (0.24.0)
       agent-context
       async-htty
       async-service (~> 0.23)
@@ -91,15 +91,17 @@ GEM
       io-watch
       live (~> 0.19)
       protocol-url (~> 0.19)
+      web-packages (~> 0.2)
       xrb
     localhost (1.8.0)
       bake
     markly (0.17.0)
     openssl (4.0.2)
-    presently (0.16.0)
+    presently (0.17.0)
       async-webdriver (~> 0.12)
-      lively (~> 0.18)
+      lively (~> 0.22)
       markly (~> 0.16)
+      protocol-media-registry (~> 0.0)
     protocol-hpack (1.5.1)
     protocol-http (0.71.0)
     protocol-http1 (0.41.0)
@@ -109,17 +111,22 @@ GEM
       protocol-http (~> 0.62)
     protocol-htty (0.5.0)
       protocol-http2
+    protocol-media (0.3.0)
+    protocol-media-registry (0.1.0)
+      protocol-media (~> 0.1)
     protocol-rack (0.22.1)
       io-stream (>= 0.10)
       protocol-http (~> 0.58)
       rack (>= 1.0)
     protocol-url (0.19.0)
-    protocol-websocket (0.21.1)
+    protocol-websocket (0.21.2)
       protocol-http (~> 0.2)
     rack (3.2.7)
     samovar (2.5.1)
       console (~> 1.0)
     string-format (0.2.0)
+    web-packages (0.2.0)
+      bake
     xrb (0.12.0)
 
 PLATFORMS
@@ -128,7 +135,7 @@ PLATFORMS
 
 DEPENDENCIES
   io-watch
-  presently
+  presently (~> 0.17)
 
 CHECKSUMS
   agent-context (0.3.0) sha256=1bc73ffb4f73756417e349654b09953b42e8b26a4d091b4f5a13bd6c41d326fe
@@ -157,23 +164,26 @@ CHECKSUMS
   io-stream (0.14.0) sha256=07d9b13ea2066ccbbc761fff8d69ad5a31e47561d31e02cc271f3ed9c1a8f1cd
   io-watch (0.6.3) sha256=95f80faf4b1ee00d8e184340830265ddae237b4f3a42b21f1e90593108932363
   json (3.0.1) sha256=c80f74a3570c3a310cd41c526904e7ef8363abdece4432f31fe97d812bc4a39e
-  live (0.19.0)
-  lively (0.23.0)
+  live (0.20.0) sha256=72db506fd59e1a9c5d8b67332af292ab5de889dcae5c6ea1565b18c9ff14fba9
+  lively (0.24.0) sha256=69e7fa7bc521a6dacbd31c4c0a334eb90ac9b13d366f419035aa1c9e01ed38ce
   localhost (1.8.0) sha256=df7ea825b4f64949c588c17efac86bc47ddc4460d723778abe933b71759b2701
   markly (0.17.0) sha256=fab61b604f7c4c8f771c3b7f2f16b971034bb72ddd27009b90c3fae1990b17e6
   openssl (4.0.2) sha256=1037ad2868ae58df9ad917891c0c0f9815a1172f6846d4bcdd508e4c2ee747c2
-  presently (0.16.0) sha256=2f10f0d1d2e3094b782a22e9abef2c6c6d9e3b10f21ab013eef3f5106344d8c4
+  presently (0.17.0) sha256=6a9cf616ef1c1beef0df4a0eea5c332748467ebeb5ae68f9b7371afcdc11dc82
   protocol-hpack (1.5.1) sha256=6feca238b8078da1cd295677d6f306c6001af92d75fe0643d33e6956cbc3ad91
   protocol-http (0.71.0) sha256=38577bf3df0bf0c3f7ee7e21b43fcb4bd7624e36f697dbe9c3eea344f14bd9ba
   protocol-http1 (0.41.0) sha256=9863874a1228948a896c3e7ea16d13a680c8f3ed50706007c78b7033018b0ea3
   protocol-http2 (0.28.0) sha256=b7c6195dcfa80ec2484670e9fd8fc21024cc654a391aa0792433aff1188c1691
   protocol-htty (0.5.0) sha256=52ccd2d890d17d01346b96a99b942b48b8df82a1b9a861da87ba9d7eb8005e46
+  protocol-media (0.3.0) sha256=8480d339cdea500ea10025e5369e8830dcc1cebdeb6a9f7fa9acf12c29213536
+  protocol-media-registry (0.1.0) sha256=cce7fc102b323b3c172b165506c5d741ed5bf0c89bc6983176a801212defa560
   protocol-rack (0.22.1) sha256=1185d245927ef9849a603700d6991ca353bc89724fbf98efa4a4333ed62a9fc3
   protocol-url (0.19.0) sha256=3f6b9f6aa742a259a0b3610fbbd9685dcd9506adf6734f428ff96259faabfb21
-  protocol-websocket (0.21.1) sha256=34325e4325697f0956877e67784bcc838cfd51ebbf4f8e9e5201be292041ee61
+  protocol-websocket (0.21.2) sha256=cbe35be8e045597b221874fba5928d7cd2483884126e3e36faece4741dc88eb7
   rack (3.2.7) sha256=93e13e1c24f93556671d85d2d79fa228c3485815c50d7e2f265b5330c6528fb7
   samovar (2.5.1) sha256=8a9fc41eb8868084f0321eb41678c485cfbc7d282fb306c0be67c3284b1d2394
   string-format (0.2.0) sha256=bc981c14116b061f12134549f32fa2d61a17b5a35dd6fd36596c21722a789af6
+  web-packages (0.2.0) sha256=9be25a515b999daa7ac4e82a05dfa309ae4e1720031d6b85d59a02b7d98ecd71
   xrb (0.12.0) sha256=93b31201effbb03bf69136f7d32fd7eb1278b4fa225853f6539e169ca3b2fb65
 
 BUNDLED WITH
