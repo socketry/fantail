@@ -1,24 +1,21 @@
 ---
 template: diagram
 duration: 12
+section: Capacity model
 marker: Permits
 transition: fade
 ---
 
-<div class="fantail-slide">
-	<div class="fantail-heading">
-		<p class="fantail-kicker">Capacity model</p>
-		<h1>A processing permit means a worker is ready.</h1>
-	</div>
-	<div class="lifecycle">
-		<div class="lifecycle-step active"><strong>1</strong><span>Reserve worker permit</span></div>
-		<div class="lifecycle-line"></div>
-		<div class="lifecycle-step active"><strong>2</strong><span>Process request</span></div>
-		<div class="lifecycle-line"></div>
-		<div class="lifecycle-step release"><strong>3</strong><span>Response headers</span><small>release worker permit</small></div>
-		<div class="lifecycle-line"></div>
-		<div class="lifecycle-step stream"><strong>4</strong><span>Stream body</span><small>retain stream slot</small></div>
-	</div>
+# A processing permit means a worker is ready.
+
+<div class="lifecycle">
+	<div class="lifecycle-step active"><strong>1</strong><span>Reserve worker permit</span></div>
+	<div class="lifecycle-line"></div>
+	<div class="lifecycle-step active"><strong>2</strong><span>Process request</span></div>
+	<div class="lifecycle-line"></div>
+	<div class="lifecycle-step release"><strong>3</strong><span>Response headers</span><small>release worker permit</small></div>
+	<div class="lifecycle-line"></div>
+	<div class="lifecycle-step stream"><strong>4</strong><span>Stream body</span><small>retain stream slot</small></div>
 </div>
 
 ---

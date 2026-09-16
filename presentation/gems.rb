@@ -2,5 +2,5 @@
 
 source "https://rubygems.org"
 
-gem "presently", "~> 0.17"
+gem "presently", "~> 0.24.0"
 gem "io-watch"

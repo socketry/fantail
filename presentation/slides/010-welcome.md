@@ -5,11 +5,7 @@ marker: Welcome
 transition: fade
 ---
 
-# Title
-
-Fantail
-
-## Subtitle
+# Fantail
 
 Worker-aware HTTP load balancing
 

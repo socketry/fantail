@@ -1,34 +1,31 @@
 ---
 template: diagram
 duration: 22
+section: Application policy
 marker: Queue Policy
 transition: fade
 ---
 
-<div class="fantail-slide">
-	<div class="fantail-heading">
-		<p class="fantail-kicker">Application policy</p>
-		<h1>Different workloads need different admission policies.</h1>
+# Different workloads need different admission policies.
+
+<div class="queue-grid">
+	<div class="queue-card cpu-queue">
+		<h2>CPU-heavy</h2>
+		<p>Spread across idle workers</p>
+		<code>balance :spread</code>
 	</div>
-	<div class="queue-grid">
-		<div class="queue-card cpu-queue">
-			<h2>CPU-heavy</h2>
-			<p>Spread across idle workers</p>
-			<code>balance :spread</code>
-		</div>
-		<div class="queue-card io-queue">
-			<h2>I/O-heavy</h2>
-			<p>Prefer compatible affinity</p>
-			<code>balance :pack, affinity: :grpc</code>
-		</div>
-		<div class="queue-card shed-queue">
-			<h2>Overload</h2>
-			<p>Bound queue depth and time</p>
-			<code>wait_limit 0.25</code>
-		</div>
+	<div class="queue-card io-queue">
+		<h2>I/O-heavy</h2>
+		<p>Prefer compatible affinity</p>
+		<code>balance :pack, affinity: :grpc</code>
 	</div>
-	<p class="queue-caption">Queues express preference and admission policy. The central scheduler remains work-conserving.</p>
+	<div class="queue-card shed-queue">
+		<h2>Overload</h2>
+		<p>Bound queue depth and time</p>
+		<code>wait_limit 0.25</code>
+	</div>
 </div>
+<p class="queue-caption">Queues express preference and admission policy. The central scheduler remains work-conserving.</p>
 
 ---
 
